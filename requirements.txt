@@ -1,1 +1,2 @@
 Flask
+fastmcp==3.0.0

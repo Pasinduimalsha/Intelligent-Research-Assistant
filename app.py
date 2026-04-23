@@ -1,10 +1,10 @@
-from flask import Flask
+from fastmcp import FastMCP
 
-app = Flask(__name__)
+mcp = FastMCP("My MCP Server")
 
-@app.route("/")
-def hello_world():
-    return "<p>Hello, World!</p>"
+@mcp.tool
+def greet(name: str) -> str:
+    return f"Hello, {name}!"
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    mcp.run(transport='sse', port=8000)
