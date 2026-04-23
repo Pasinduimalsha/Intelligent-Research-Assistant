@@ -4,7 +4,7 @@
 
 ## Changes Made
 
-- [ ] Added/Updated/Fixed: <!-- short bullet describing a key change -->
+- Added/Updated/Fixed: <!-- add one or more bullets describing key changes -->
 
 ## Related Issues
 
