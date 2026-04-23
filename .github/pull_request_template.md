@@ -4,7 +4,7 @@
 
 ## Changes Made
 
-- [ ] 
+- [ ] Added/Updated/Fixed: <!-- short bullet describing a key change -->
 
 ## Related Issues
 
