@@ -3,6 +3,7 @@ import operator
 
 class ResearchState(TypedDict):
     query: str
+    original_query: str
     research_plan: str
     sources: Annotated[List[str], operator.add]
     notes: Annotated[List[str], operator.add]

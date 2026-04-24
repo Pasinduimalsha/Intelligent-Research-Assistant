@@ -4,6 +4,7 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_core.runnables import RunnableConfig
 
 from agents.states.research_state import ResearchState
+from agents.prompts import OUTPUT_GUARDRAIL_SYSTEM
 
 class OutputGuardrailAgent:
     """Agent responsible for scanning the final draft for PII and toxicity."""
@@ -24,16 +25,8 @@ class OutputGuardrailAgent:
     async def __call__(self, state: ResearchState, config: RunnableConfig) -> Dict[str, Any]:
         print("\n--- OUTPUT GUARDRAIL AGENT ---")
         
-        system_prompt = """You are a strict security guardrail for an AI research assistant.
-Your job is to analyze the final drafted response and detect any of the following:
-1. Personally Identifiable Information (PII) like real phone numbers, SSNs, or private emails.
-2. Toxic, offensive, or harmful language.
-
-If the draft is safe and professional, return is_safe=True.
-If the draft violates policy, return is_safe=False and provide a brief reason."""
-
         response = await self.llm.ainvoke(
-            [SystemMessage(content=system_prompt), HumanMessage(content=state.get("draft", ""))],
+            [SystemMessage(content=OUTPUT_GUARDRAIL_SYSTEM), HumanMessage(content=state.get("draft", ""))],
             config=config
         )
         

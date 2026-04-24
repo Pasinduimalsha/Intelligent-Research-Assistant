@@ -3,6 +3,7 @@ from langchain_core.runnables import RunnableConfig
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from agents.states.research_state import ResearchState
+from agents.prompts import PLANNER_SYSTEM
 
 class PlannerAgent:
     """Agent responsible for breaking down the query into a plan."""
@@ -13,7 +14,7 @@ class PlannerAgent:
     async def __call__(self, state: ResearchState, config: RunnableConfig) -> Dict[str, Any]:
         print("\n--- PLANNER AGENT ---")
         prompt = ChatPromptTemplate.from_messages([
-            ("system", "You are an expert research planner. Briefly break down the user's query into a strategy to find the best information."),
+            ("system", PLANNER_SYSTEM),
             ("user", "{query}")
         ])
         chain = prompt | self.llm

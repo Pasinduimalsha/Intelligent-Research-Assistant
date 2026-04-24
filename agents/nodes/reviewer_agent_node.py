@@ -3,6 +3,7 @@ from langchain_core.runnables import RunnableConfig
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from agents.states.research_state import ResearchState
+from agents.prompts import REVIEWER_SYSTEM
 
 class ReviewerAgent:
     """Agent responsible for evaluating the draft against the query."""
@@ -13,7 +14,7 @@ class ReviewerAgent:
     async def __call__(self, state: ResearchState, config: RunnableConfig) -> Dict[str, Any]:
         print("\n--- REVIEWER AGENT ---")
         prompt = ChatPromptTemplate.from_messages([
-            ("system", "You are an expert editor. Review the draft against the original query. Does it answer the query completely and accurately? Output 'YES' if it is perfect, or provide feedback on what is missing if it is not."),
+            ("system", REVIEWER_SYSTEM),
             ("user", "QUERY: {query}\n\nDRAFT: {draft}")
         ])
         chain = prompt | self.llm

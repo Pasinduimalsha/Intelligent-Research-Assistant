@@ -2,10 +2,6 @@
 
 A FastAPI-based backend application powered by LangGraph and the Model Context Protocol (MCP) for autonomous research.
 
-## Architecture Diagram
-
-
-
 ## Setup Instructions
 
 1. **Create a virtual environment**:

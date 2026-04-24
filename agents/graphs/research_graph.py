@@ -5,6 +5,7 @@ from langchain_openai import ChatOpenAI
 from config.applicationConfig import ApplicationConfig
 from agents.states.research_state import ResearchState
 from agents.nodes.input_guardrail_node import InputGuardrailAgent
+from agents.nodes.query_normalizer_node import QueryNormalizerAgent
 from agents.nodes.planner_agent_node import PlannerAgent
 from agents.nodes.web_search_agent_node import WebSearchAgent
 from agents.nodes.file_search_agent_node import FileSearchAgent
@@ -24,6 +25,7 @@ async def create_graph(
     
     # 1. Initialize nodes with injected dependencies
     input_guard_node_instance = InputGuardrailAgent(llm)
+    normalizer_node_instance = QueryNormalizerAgent(llm)
     planner_node_instance = PlannerAgent(llm)
     search_node_instance = WebSearchAgent()
     local_search_node_instance = FileSearchAgent()
@@ -34,6 +36,7 @@ async def create_graph(
     
     # 2. Add nodes
     graph.add_node("InputGuard", input_guard_node_instance)
+    graph.add_node("Normalizer", normalizer_node_instance)
     graph.add_node("Planner", planner_node_instance)
     graph.add_node("Search", search_node_instance)
     graph.add_node("LocalSearch", local_search_node_instance)
@@ -46,21 +49,24 @@ async def create_graph(
     graph.set_entry_point("InputGuard")
     
     # 4. Conditional routing after InputGuard
-    def route_after_input(state: ResearchState) -> Literal["Planner", "__end__"]:
+    def route_after_input(state: ResearchState) -> Literal["Normalizer", "__end__"]:
         if not state.get("is_safe_input", True):
             return END
-        return "Planner"
+        return "Normalizer"
         
     graph.add_conditional_edges(
         "InputGuard",
         route_after_input,
         {
-            "Planner": "Planner",
+            "Normalizer": "Normalizer",
             END: END
         }
     )
     
-    # 5. Standard Edges
+    # 5. Normalizer to Planner Edge
+    graph.add_edge("Normalizer", "Planner")
+    
+    # 6. Standard Edges
     graph.add_edge("Planner", "Search")
     graph.add_edge("Search", "LocalSearch")
     graph.add_edge("LocalSearch", "Scraper")
