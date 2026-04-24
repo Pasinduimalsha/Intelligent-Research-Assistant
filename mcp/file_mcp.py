@@ -7,6 +7,14 @@ from mcp.types import Tool, TextContent
 
 app = Server('file-mcp')
 
+# Define the absolute path of the safe workspace directory
+WORKSPACE_DIR = os.path.abspath(os.getcwd())
+
+def is_safe_path(target_path: str) -> bool:
+    """Guardrail to prevent directory traversal attacks (e.g., ../../etc/passwd)."""
+    abs_target = os.path.abspath(target_path)
+    return os.path.commonpath([WORKSPACE_DIR, abs_target]) == WORKSPACE_DIR
+
 @app.list_tools()
 async def list_tools():
     return [
@@ -21,6 +29,8 @@ async def list_tools():
 @app.call_tool()
 async def call_tool(name, arguments):
     if name == 'list_directory':
+        if not is_safe_path(arguments['path']):
+            return [TextContent(type='text', text="Error: Security Guardrail Blocked Access. Cannot read outside workspace.")]
         try:
             contents = os.listdir(arguments['path'])
             return [TextContent(type='text', text=json.dumps(contents))]
@@ -28,6 +38,8 @@ async def call_tool(name, arguments):
             return [TextContent(type='text', text=f"Error: {str(e)}")]
             
     if name == 'read_file':
+        if not is_safe_path(arguments['path']):
+            return [TextContent(type='text', text="Error: Security Guardrail Blocked Access. Cannot read outside workspace.")]
         try:
             with open(arguments['path'], 'r') as f:
                 content = f.read()
