@@ -1,9 +1,10 @@
 # Intelligent-Research-Assistant
 
-A Flask-based backend application for the Intelligent Research Assistant.
+A FastAPI-based backend application powered by LangGraph and the Model Context Protocol (MCP) for autonomous research.
 
-## Prerequisites
-- Python 3.x
+## Architecture Diagram
+
+
 
 ## Setup Instructions
 
@@ -27,24 +28,28 @@ A Flask-based backend application for the Intelligent Research Assistant.
    pip install -r requirements.txt
    ```
 
-4. **Update dependencies** (after installing new packages):
-   ```bash
-   pip freeze > requirements.txt
-   ```
+4. **Environment Variables**:
+   Create a `.env` file in the root directory based on `.env.example` (if present) and ensure `OPENAI_API_KEY` is set.
 
 ## Running the Application
 
-Start the Flask development server:
+Start the unified FastAPI server:
 ```bash
-python app.py
-```
-Or alternatively:
-```bash
-flask run
+python main.py
 ```
 
-The application will be accessible at `http://127.0.0.1:5000/`.
+The REST API and internal FastMCP host will be accessible at `http://0.0.0.0:8000/`.
+
+## Testing the Application
+Use the provided `client.py` to test the LangGraph pipeline via Server-Sent Events (SSE):
+```bash
+python client.py
+```
 
 ## Project Structure
-- `app.py`: Main Flask application entry point.
-- `requirements.txt`: Python package dependencies.
+- `main.py`: Main FastAPI application entry point, mounting LangGraph routers and FastMCP.
+- `client.py`: Frontend test script to consume SSE endpoints.
+- `mcp/`: Contains all Model Context Protocol Subprocess Servers (`web_mcp.py`, `file_mcp.py`).
+- `agents/`: Contains all LangGraph Nodes, States, and Graph builders.
+- `controllers/`: API endpoints connecting FastAPI to LangGraph.
+- `config/`: Pydantic settings loading from `.env`.
