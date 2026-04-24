@@ -9,3 +9,6 @@ class ResearchState(TypedDict):
     draft: str
     revision_count: int
     is_complete: bool
+    is_safe_input: bool
+    is_safe_output: bool
+    safety_violation_reason: str
