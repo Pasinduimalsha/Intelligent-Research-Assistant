@@ -25,6 +25,7 @@ class ApplicationConfig(BaseSettings):
     
     # === Logging Configuration ===
     log_level: str = Field(default="INFO", description="Logging level")
+    backend_url: str = Field(default="", description="Backend API URL")
     
     # === API Keys ===
     openai_api_key: str = Field(description="OpenAI API key")
