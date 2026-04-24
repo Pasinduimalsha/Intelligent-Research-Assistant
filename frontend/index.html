@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intelligent Research Assistant | IRA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0b10;
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.1);
+            --accent: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.5);
+            --text: #e2e8f0;
+            --text-dim: #94a3b8;
+            --success: #10b981;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background-image: 
+                radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(168, 85, 247, 0.05) 0%, transparent 40%);
+        }
+
+        /* Layout */
+        .header {
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: -1px;
+            background: linear-gradient(to right, #fff, var(--text-dim));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .main-container {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 1rem;
+            padding: 1rem;
+            overflow: hidden;
+        }
+
+        /* Sidebar: Node Visualization */
+        .sidebar {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .node-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .node-item {
+            padding: 1rem;
+            border-radius: 1rem;
+            border: 1px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all 0.3s ease;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        .node-item.active {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: var(--accent);
+            color: white;
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .node-item.completed {
+            color: var(--success);
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+
+        .node-item.skipped {
+            color: var(--text-dim);
+            opacity: 0.5;
+            text-decoration: line-through;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .node-item.active .status-dot {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.5; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Content Area */
+        .content-area {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            overflow: hidden;
+        }
+
+        .output-panel {
+            flex: 1;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            overflow-y: auto;
+            font-family: 'Outfit', sans-serif;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            position: relative;
+        }
+
+        .output-panel::-webkit-scrollbar { width: 6px; }
+        .output-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
+        /* Input Bar */
+        .input-bar {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 2rem;
+            padding: 0.5rem 1rem 0.5rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            backdrop-filter: blur(20px);
+        }
+
+        input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 1rem;
+            outline: none;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        button {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 1.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px var(--accent-glow);
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 1.2em;
+            background: var(--accent);
+            margin-left: 2px;
+            vertical-align: middle;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink { 50% { opacity: 0; } }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="logo">INTELLIGENT RESEARCH ASSISTANT</div>
+        <div id="connectionStatus" style="font-size: 0.8rem; color: var(--success)">● System Online</div>
+    </header>
+
+    <main class="main-container">
+        <aside class="sidebar">
+            <h3 style="margin-bottom: 1rem; font-size: 1rem;">Execution Flow</h3>
+            <div class="node-list" id="nodeList">
+                <div class="node-item" id="node-InputGuard"><div class="status-dot"></div>Input Guardrail</div>
+                <div class="node-item" id="node-Normalizer"><div class="status-dot"></div>Query Normalizer</div>
+                <div class="node-item" id="node-Router"><div class="status-dot"></div>Routing Engine</div>
+                <div class="node-item" id="node-Retriever"><div class="status-dot"></div>RAG Retriever</div>
+                <div class="node-item" id="node-Planner"><div class="status-dot"></div>Research Planner</div>
+                <div class="node-item" id="node-Search"><div class="status-dot"></div>Web Search</div>
+                <div class="node-item" id="node-LocalSearch"><div class="status-dot"></div>File Search</div>
+                <div class="node-item" id="node-Scraper"><div class="status-dot"></div>Web Scraper</div>
+                <div class="node-item" id="node-Writer"><div class="status-dot"></div>Draft Writer</div>
+                <div class="node-item" id="node-OutputGuard"><div class="status-dot"></div>Output Guardrail</div>
+                <div class="node-item" id="node-Reviewer"><div class="status-dot"></div>Final Review</div>
+            </div>
+        </aside>
+
+        <section class="content-area">
+            <div class="output-panel" id="output">
+                <span style="color: var(--text-dim)">Awaiting your research query...</span>
+            </div>
+
+            <div class="input-bar">
+                <input type="text" id="queryInput" placeholder="Ask anything about internal docs or the web..." autocomplete="off">
+                <button id="sendBtn">Run Research</button>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const output = document.getElementById('output');
+        const queryInput = document.getElementById('queryInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const nodes = document.querySelectorAll('.node-item');
+        const connStatus = document.getElementById('connectionStatus');
+
+        function updateNode(nodeName, status) {
+            const node = document.getElementById(`node-${nodeName}`);
+            if (!node) return;
+
+            if (status === 'active') {
+                // If this is a new active node, make sure previous ones are marked as completed if they weren't
+                node.classList.add('active');
+            } else if (status === 'completed') {
+                node.classList.remove('active');
+                node.classList.add('completed');
+            }
+        }
+
+        async function startResearch() {
+            const query = queryInput.value;
+            if (!query) return;
+
+            // Reset UI
+            output.innerHTML = '<div class="cursor"></div>';
+            nodes.forEach(n => n.className = 'node-item');
+            queryInput.value = '';
+            
+            try {
+                const response = await fetch('http://localhost:8000/research/stream', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        query: query,
+                        thread_id: "frontend-" + Math.random().toString(36).substring(7)
+                    })
+                });
+
+                if (!response.ok) throw new Error("Backend unreachable");
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let currentText = "";
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
+                    
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const data = JSON.parse(line.substring(6));
+                                
+                                if (data.status === 'generating') {
+                                    currentText += data.text;
+                                    output.innerText = currentText;
+                                    output.scrollTop = output.scrollHeight;
+                                } else if (data.status === 'node_completed') {
+                                    updateNode(data.node, 'completed');
+                                } else if (data.status === 'node_started') {
+                                    updateNode(data.node, 'active');
+                                }
+                            } catch (e) {}
+                        }
+                    }
+                }
+            } catch (err) {
+                output.innerHTML = `<span style="color: #ef4444">Error: ${err.message}. Make sure your FastAPI server is running on port 8000.</span>`;
+                connStatus.style.color = '#ef4444';
+                connStatus.innerText = '● System Offline';
+            }
+        }
+
+        sendBtn.onclick = startResearch;
+        queryInput.onkeypress = (e) => { if (e.key === 'Enter') startResearch(); };
+    </script>
+</body>
+</html>

@@ -42,11 +42,17 @@ async def stream_research_graph(request: Request, payload: ResearchRequest):
                     if chunk:
                         yield f"data: {json.dumps({'status': 'generating', 'text': chunk})}\n\n"
                         
-                # Catch when specific nodes finish
+                # Catch when specific nodes start or finish
+                elif event["event"] == "on_chain_start" and "name" in event:
+                    node_name = event["name"]
+                    valid_nodes = ["InputGuard", "Normalizer", "Router", "Retriever", "Planner", "Search", "LocalSearch", "Scraper", "Writer", "OutputGuard", "Reviewer"]
+                    if node_name in valid_nodes:
+                        yield f"data: {json.dumps({'status': 'node_started', 'node': node_name})}\n\n"
+
                 elif event["event"] == "on_chain_end" and "name" in event:
                     node_name = event["name"]
-                    # We can filter for the names of our LangGraph nodes
-                    if node_name in ["Planner", "Search", "Scraper", "Writer", "Reviewer"]:
+                    valid_nodes = ["InputGuard", "Normalizer", "Router", "Retriever", "Planner", "Search", "LocalSearch", "Scraper", "Writer", "OutputGuard", "Reviewer"]
+                    if node_name in valid_nodes:
                         yield f"data: {json.dumps({'status': 'node_completed', 'node': node_name})}\n\n"
                         
         except asyncio.CancelledError:
