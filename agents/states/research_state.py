@@ -14,3 +14,7 @@ class ResearchState(TypedDict):
     is_safe_input: bool
     is_safe_output: bool
     safety_violation_reason: str
+    needed_sources: List[str]
+    followup_query: str
+    needs_reroute: bool
+    reroute_count: int

@@ -11,6 +11,7 @@ from config.applicationConfig import ApplicationConfig
 from agents.orchestrators.research_orchestrator import ResearchOrchestrator
 from controllers.langgraph_router import router as langgraph_router
 from controllers.rag_router import router as rag_router
+from fastapi.middleware.cors import CORSMiddleware
 
 # ==========================================
 # 1. FastMCP Server Setup
@@ -56,6 +57,15 @@ app = FastAPI(
 # Attach routers
 app.include_router(langgraph_router)
 app.include_router(rag_router)
+
+# Enable CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # For production, replace with specific frontend URL
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Mount the FastMCP server using SSE transport
 app.mount("/mcp", mcp.http_app(transport='sse'))
