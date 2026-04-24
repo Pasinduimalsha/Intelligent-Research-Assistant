@@ -2,9 +2,11 @@ import asyncio
 import httpx
 import json
 from httpx_sse import aconnect_sse
+from config.applicationConfig import ApplicationConfig
 
 async def run_research_client():
-    url = "http://localhost:8000/research/stream"
+    config = ApplicationConfig()
+    url = f"{config.backend_url}/research/stream"
     payload = {
         "query": "Compare the data ingestion workflow defined in our internal Vector DB guide with the latest 2024 performance benchmarks for Qdrant and suggest three optimizations based on recent web findings",
         "thread_id": "hybrid-session-001"
