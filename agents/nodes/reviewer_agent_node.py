@@ -12,7 +12,10 @@ class ReviewerAgent:
         self.llm = llm
 
     async def __call__(self, state: ResearchState, config: RunnableConfig) -> Dict[str, Any]:
-        print("\n--- REVIEWER AGENT ---")
+        print("\n" + "="*50)
+        print("--- QUALITY REVIEW AGENT ---")
+        print("="*50)
+        draft = state.get("draft", "")
         prompt = ChatPromptTemplate.from_messages([
             ("system", REVIEWER_SYSTEM),
             ("user", "QUERY: {query}\n\nDRAFT: {draft}")

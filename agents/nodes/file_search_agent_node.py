@@ -27,7 +27,10 @@ class FileSearchAgent:
                     return f"Error: {e}"
 
     async def __call__(self, state: ResearchState, config: RunnableConfig) -> Dict[str, Any]:
-        print("\n--- FILE SEARCH AGENT (via MCP) ---")
+        print("\n" + "="*50)
+        print("--- FILE SEARCH AGENT ---")
+        print("="*50)
+        query = state["query"]
         print("Reading local file context via MCP...")
         
         # We will attempt to read the README.md to get context about the project.

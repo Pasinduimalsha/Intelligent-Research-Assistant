@@ -13,6 +13,11 @@ from agents.nodes.scraper_agent_node import ScraperAgent
 from agents.nodes.response_gen_agent_node import ResponseGenAgent
 from agents.nodes.output_guardrail_node import OutputGuardrailAgent
 from agents.nodes.reviewer_agent_node import ReviewerAgent
+from agents.nodes.retriever_agent_node import RetrieverAgent
+from services.rag.rag_service import RAGService
+from services.rag.qdrant_service import QdrantService
+from services.rag.embedding_service import EmbeddingService
+from providers.reranker.openai_reranker import OpenAIReranker
 
 async def create_graph(
     llm: ChatOpenAI,
@@ -23,9 +28,23 @@ async def create_graph(
     """
     graph = StateGraph(ResearchState)
     
-    # 1. Initialize nodes with injected dependencies
+    # 1. Initialize RAG Infrastructure
+    embedding_service = EmbeddingService(app_config)
+    qdrant_service = QdrantService(app_config)
+    reranker_provider = OpenAIReranker(app_config)
+    rag_service = RAGService(
+        qdrant_service=qdrant_service,
+        embedding_service=embedding_service,
+        collection_name=app_config.qdrant_collection_name,
+        top_k=app_config.rag_top_k,
+        rerank_top_n=app_config.rerank_top_n,
+        reranker=reranker_provider
+    )
+    
+    # 2. Initialize nodes with injected dependencies
     input_guard_node_instance = InputGuardrailAgent(llm)
     normalizer_node_instance = QueryNormalizerAgent(llm)
+    retriever_node_instance = RetrieverAgent(rag_service)
     planner_node_instance = PlannerAgent(llm)
     search_node_instance = WebSearchAgent()
     local_search_node_instance = FileSearchAgent()
@@ -34,9 +53,10 @@ async def create_graph(
     output_guard_node_instance = OutputGuardrailAgent(llm)
     reviewer_node_instance = ReviewerAgent(llm)
     
-    # 2. Add nodes
+    # 3. Add nodes
     graph.add_node("InputGuard", input_guard_node_instance)
     graph.add_node("Normalizer", normalizer_node_instance)
+    graph.add_node("Retriever", retriever_node_instance)
     graph.add_node("Planner", planner_node_instance)
     graph.add_node("Search", search_node_instance)
     graph.add_node("LocalSearch", local_search_node_instance)
@@ -45,10 +65,10 @@ async def create_graph(
     graph.add_node("OutputGuard", output_guard_node_instance)
     graph.add_node("Reviewer", reviewer_node_instance)
     
-    # 3. Set entry point
+    # 4. Set entry point
     graph.set_entry_point("InputGuard")
     
-    # 4. Conditional routing after InputGuard
+    # 5. Conditional routing after InputGuard
     def route_after_input(state: ResearchState) -> Literal["Normalizer", "__end__"]:
         if not state.get("is_safe_input", True):
             return END
@@ -63,10 +83,11 @@ async def create_graph(
         }
     )
     
-    # 5. Normalizer to Planner Edge
-    graph.add_edge("Normalizer", "Planner")
+    # 6. Normalizer -> Retriever -> Planner Edge
+    graph.add_edge("Normalizer", "Retriever")
+    graph.add_edge("Retriever", "Planner")
     
-    # 6. Standard Edges
+    # 7. Standard Edges
     graph.add_edge("Planner", "Search")
     graph.add_edge("Search", "LocalSearch")
     graph.add_edge("LocalSearch", "Scraper")

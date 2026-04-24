@@ -5,6 +5,7 @@ class ResearchState(TypedDict):
     query: str
     original_query: str
     research_plan: str
+    context_documents: list[dict]
     sources: Annotated[List[str], operator.add]
     notes: Annotated[List[str], operator.add]
     draft: str

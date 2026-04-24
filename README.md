@@ -24,7 +24,14 @@ A FastAPI-based backend application powered by LangGraph and the Model Context P
    pip install -r requirements.txt
    ```
 
-4. **Environment Variables**:
+4. **Start Qdrant (Local Vector DB)**:
+   Ensure you have Docker installed, then run:
+   ```bash
+   docker-compose up -d
+   ```
+   Qdrant will be available at `http://localhost:6333`.
+
+5. **Environment Variables**:
    Create a `.env` file in the root directory based on `.env.example` (if present) and ensure `OPENAI_API_KEY` is set.
 
 ## Running the Application

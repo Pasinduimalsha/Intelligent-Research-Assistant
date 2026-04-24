@@ -11,7 +11,9 @@ class QueryNormalizerAgent:
         pass
 
     async def __call__(self, state: ResearchState, config: RunnableConfig) -> Dict[str, Any]:
-        print("\n--- QUERY NORMALIZER ---")
+        print("\n" + "="*50)
+        print("--- QUERY NORMALIZER AGENT ---")
+        print("="*50)
         raw_query = state["query"]
         
         # 1. Trim trailing spaces

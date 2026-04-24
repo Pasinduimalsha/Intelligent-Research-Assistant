@@ -9,7 +9,10 @@ class ScraperAgent:
         pass
 
     async def __call__(self, state: ResearchState, config: RunnableConfig) -> Dict[str, Any]:
-        print("\n--- SCRAPER AGENT ---")
+        print("\n" + "="*50)
+        print("--- WEB SCRAPER AGENT ---")
+        print("="*50)
+        # Simulating scraping from the first search result
         # In a full implementation, this node would use BeautifulSoup to extract full text.
         # For now, it simply passes through, relying on the search snippets for notes.
         return {}

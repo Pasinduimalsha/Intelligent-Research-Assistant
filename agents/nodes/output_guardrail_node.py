@@ -23,7 +23,9 @@ class OutputGuardrailAgent:
         )
 
     async def __call__(self, state: ResearchState, config: RunnableConfig) -> Dict[str, Any]:
-        print("\n--- OUTPUT GUARDRAIL AGENT ---")
+        print("\n" + "="*50)
+        print("--- OUTPUT GUARDRAIL AGENT ---")
+        print("="*50)
         
         response = await self.llm.ainvoke(
             [SystemMessage(content=OUTPUT_GUARDRAIL_SYSTEM), HumanMessage(content=state.get("draft", ""))],

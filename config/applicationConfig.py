@@ -39,6 +39,25 @@ class ApplicationConfig(BaseSettings):
         description="Model to use for code generation"
     )
     
+    # === RAG Configuration ===
+    qdrant_url: Optional[str] = Field(default=None, description="Qdrant vector DB URL")
+    qdrant_api_key: Optional[str] = Field(default=None, description="Qdrant API key")
+    qdrant_collection_name: str = Field(default="research_assistant", description="Qdrant collection name")
+    rag_top_k: int = Field(default=10, description="Number of documents to retrieve from vector DB")
+    rerank_top_n: int = Field(default=5, description="Number of documents to keep after reranking")
+    embedding_dimension: int = Field(default=1536, description="Dimension of the vector embeddings")
+    
+    # === Embedding Configuration ===
+    embedding_provider_type: str = Field(default="openai", description="Embedding provider type")
+    embedding_model: str = Field(default="text-embedding-3-small", description="OpenAI embedding model")
+
+    # === Reranker Configuration ===
+    reranker_provider_type: str = Field(default="openai", description="Reranker provider type")
+    reranker_model: str = Field(
+        default="gpt-4o-mini",
+        description="OpenAI model to use for reranking"
+    )
+    
     def model_post_init(self, __context) -> None:
         """Validate required fields after model initialization."""
         self._validate_required_fields()

@@ -28,8 +28,12 @@ class WebSearchAgent:
                     return []
 
     async def __call__(self, state: ResearchState, config: RunnableConfig) -> Dict[str, Any]:
-        print("\n--- WEB SEARCH AGENT (via MCP) ---")
+        print("\n" + "="*50)
+        print("--- WEB SEARCH AGENT ---")
+        print("="*50)
         search_query = state["query"]
+        # If the query was augmented by RAG, we might want to extract the original part 
+        # or just search with the whole thing. For now, we search with the whole thing.
         
         if state.get("revision_count", 0) > 0:
             search_query += " latest news details"

@@ -24,7 +24,10 @@ class InputGuardrailAgent:
         )
 
     async def __call__(self, state: ResearchState, config: RunnableConfig) -> Dict[str, Any]:
-        print("\n--- INPUT GUARDRAIL AGENT ---")
+        print("\n" + "="*50)
+        print("--- INPUT GUARDRAIL AGENT ---")
+        print("="*50)
+        query = state["query"]
         
         response = await self.llm.ainvoke(
             [SystemMessage(content=INPUT_GUARDRAIL_SYSTEM), HumanMessage(content=state["query"])],

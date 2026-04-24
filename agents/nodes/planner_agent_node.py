@@ -12,7 +12,9 @@ class PlannerAgent:
         self.llm = llm
 
     async def __call__(self, state: ResearchState, config: RunnableConfig) -> Dict[str, Any]:
-        print("\n--- PLANNER AGENT ---")
+        print("\n" + "="*50)
+        print("--- PLANNER AGENT ---")
+        print("="*50)
         prompt = ChatPromptTemplate.from_messages([
             ("system", PLANNER_SYSTEM),
             ("user", "{query}")

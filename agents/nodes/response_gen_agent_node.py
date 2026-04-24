@@ -12,7 +12,9 @@ class ResponseGenAgent:
         self.llm = llm
 
     async def __call__(self, state: ResearchState, config: RunnableConfig) -> Dict[str, Any]:
-        print("\n--- RESPONSE GEN AGENT ---")
+        print("\n" + "="*50)
+        print("--- RESPONSE GENERATOR AGENT ---")
+        print("="*50)
         all_notes = "\n\n".join(state.get("notes", []))
         prompt = ChatPromptTemplate.from_messages([
             ("system", RESPONSE_GEN_SYSTEM),

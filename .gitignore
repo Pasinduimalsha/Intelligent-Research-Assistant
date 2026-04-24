@@ -208,3 +208,5 @@ __marimo__/
 
 *.docx
 *.txt
+*.json
+qdrant_storage/

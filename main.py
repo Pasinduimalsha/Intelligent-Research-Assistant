@@ -1,11 +1,16 @@
 import uvicorn
+import warnings
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastmcp import FastMCP
 
+# Suppress all warnings (including Authlib and Websockets deprecations)
+warnings.filterwarnings("ignore")
+
 from config.applicationConfig import ApplicationConfig
 from agents.orchestrators.research_orchestrator import ResearchOrchestrator
-from controllers.langgraph_router import router
+from controllers.langgraph_router import router as langgraph_router
+from controllers.rag_router import router as rag_router
 
 # ==========================================
 # 1. FastMCP Server Setup
@@ -19,8 +24,8 @@ def greet(name: str) -> str:
 
 # ==========================================
 # 2. FastAPI Lifespan & Dependency Injection
-# ==========================================
-@asynccontextmanager
+# ========================================== 
+@asynccontextmanager 
 async def lifespan(app: FastAPI):
     # Initialize Configuration
     config = ApplicationConfig()
@@ -48,8 +53,9 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Attach the LangGraph REST router
-app.include_router(router)
+# Attach routers
+app.include_router(langgraph_router)
+app.include_router(rag_router)
 
 # Mount the FastMCP server using SSE transport
 app.mount("/mcp", mcp.http_app(transport='sse'))
