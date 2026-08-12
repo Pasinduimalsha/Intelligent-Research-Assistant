@@ -12,6 +12,7 @@ from agents.orchestrators.research_orchestrator import ResearchOrchestrator
 from controllers.langgraph_router import router as langgraph_router
 from controllers.rag_router import router as rag_router
 from fastapi.middleware.cors import CORSMiddleware
+from services.mcp_client import MCPClient
 
 # ==========================================
 # 1. FastMCP Server Setup
@@ -31,18 +32,25 @@ async def lifespan(app: FastAPI):
     # Initialize Configuration
     config = ApplicationConfig()
     
+    # Start persistent MCP Clients
+    mcp_client = MCPClient(["mcp/web_mcp.py", "mcp/file_mcp.py"])
+    await mcp_client.start()
+    mcp_tools = await mcp_client.get_all_tools()
+    print(f"Loaded {len(mcp_tools)} tools from MCP servers.")
+    
     # Instantiate the Orchestrator
     orchestrator = ResearchOrchestrator(config)
     
     # Compile and load the graph
-    await orchestrator.initialize()
+    await orchestrator.initialize(mcp_tools=mcp_tools)
     
     # Store the orchestrator in the FastAPI app state for routers to access
     app.state.orchestrator = orchestrator
     
     yield
     
-    # Cleanup logic (if any) goes here
+    # Cleanup logic
+    await mcp_client.stop()
 
 # ==========================================
 # 3. FastAPI Application Initialization

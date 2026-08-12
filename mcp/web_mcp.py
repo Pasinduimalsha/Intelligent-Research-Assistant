@@ -7,7 +7,7 @@ from duckduckgo_search import DDGS
 
 app = Server('web-mcp')
 
-@app.list_tools()
+@app.list_tools() #Decorator
 async def list_tools():
     return [
         Tool(name='web_search',

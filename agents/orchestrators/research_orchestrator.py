@@ -14,10 +14,10 @@ class ResearchOrchestrator:
         )
         self.app = None
 
-    async def initialize(self):
+    async def initialize(self, mcp_tools: list = None):
         """Compile the graph and store it."""
         print("Initializing Research Assistant Orchestrator...")
-        self.app = await create_graph(llm=self.llm, app_config=self.config)
+        self.app = await create_graph(llm=self.llm, app_config=self.config, mcp_tools=mcp_tools or [])
         print("Graph compiled successfully.")
         return self.app
         

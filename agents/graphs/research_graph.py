@@ -7,8 +7,7 @@ from agents.states.research_state import ResearchState
 from agents.nodes.input_guardrail_node import InputGuardrailAgent
 from agents.nodes.query_normalizer_node import QueryNormalizerAgent
 from agents.nodes.planner_agent_node import PlannerAgent
-from agents.nodes.web_search_agent_node import WebSearchAgent
-from agents.nodes.file_search_agent_node import FileSearchAgent
+from agents.nodes.tool_execution_agent_node import ToolExecutionAgent
 from agents.nodes.scraper_agent_node import ScraperAgent
 from agents.nodes.response_gen_agent_node import ResponseGenAgent
 from agents.nodes.output_guardrail_node import OutputGuardrailAgent
@@ -24,7 +23,8 @@ from agents.nodes.router_node import RouterAgent
 
 async def create_graph(
     llm: ChatOpenAI,
-    app_config: ApplicationConfig
+    app_config: ApplicationConfig,
+    mcp_tools: list
 ):
     """
     Create LangGraph for the research assistant.
@@ -51,8 +51,7 @@ async def create_graph(
     router_node_instance = RouterAgent(llm)
     retriever_node_instance = RetrieverAgent(rag_service)
     planner_node_instance = PlannerAgent(llm)
-    search_node_instance = WebSearchAgent()
-    local_search_node_instance = FileSearchAgent(llm)
+    tool_execution_node_instance = ToolExecutionAgent(llm, mcp_tools)
     scraper_node_instance = ScraperAgent()
     writer_node_instance = ResponseGenAgent(llm)
     output_guard_node_instance = OutputGuardrailAgent(llm)
@@ -64,8 +63,7 @@ async def create_graph(
     graph.add_node("Router", router_node_instance)
     graph.add_node("Retriever", retriever_node_instance)
     graph.add_node("Planner", planner_node_instance)
-    graph.add_node("Search", search_node_instance)
-    graph.add_node("LocalSearch", local_search_node_instance)
+    graph.add_node("ToolExecution", tool_execution_node_instance)
     graph.add_node("Scraper", scraper_node_instance)
     graph.add_node("Writer", writer_node_instance)
     graph.add_node("OutputGuard", output_guard_node_instance)
@@ -87,27 +85,15 @@ async def create_graph(
             return "Retriever"
         return "Planner"
 
-    def route_after_planner(state: ResearchState) -> Literal["Search", "LocalSearch", "Scraper"]:
+    def route_after_planner(state: ResearchState) -> Literal["ToolExecution", "Scraper"]:
         needed = state.get("needed_sources", [])
-        if "web" in needed:
-            return "Search"
-        if "local" in needed:
-            return "LocalSearch"
+        if "web" in needed or "local" in needed:
+            return "ToolExecution"
         return "Scraper"
 
-    def route_after_search(state: ResearchState) -> Literal["Router", "LocalSearch", "Scraper"]:
+    def route_after_tool_execution(state: ResearchState) -> Literal["Router", "Scraper"]:
         if state.get("needs_reroute") and state.get("reroute_count", 0) < 3:
-            print("\n=> RE-ROUTING: Web Search discovered sub-query.")
-            return "Router"
-            
-        needed = state.get("needed_sources", [])
-        if "local" in needed:
-            return "LocalSearch"
-        return "Scraper"
-
-    def route_after_local_search(state: ResearchState) -> Literal["Router", "Scraper"]:
-        if state.get("needs_reroute") and state.get("reroute_count", 0) < 3:
-            print("\n=> RE-ROUTING: Local Search discovered sub-query.")
+            print("\n=> RE-ROUTING: Tool Execution discovered sub-query.")
             return "Router"
         return "Scraper"
 
@@ -137,18 +123,12 @@ async def create_graph(
     graph.add_conditional_edges(
         "Planner",
         route_after_planner,
-        {"Search": "Search", "LocalSearch": "LocalSearch", "Scraper": "Scraper"}
+        {"ToolExecution": "ToolExecution", "Scraper": "Scraper"}
     )
     
     graph.add_conditional_edges(
-        "Search",
-        route_after_search,
-        {"Router": "Router", "LocalSearch": "LocalSearch", "Scraper": "Scraper"}
-    )
-    
-    graph.add_conditional_edges(
-        "LocalSearch",
-        route_after_local_search,
+        "ToolExecution",
+        route_after_tool_execution,
         {"Router": "Router", "Scraper": "Scraper"}
     )
     
